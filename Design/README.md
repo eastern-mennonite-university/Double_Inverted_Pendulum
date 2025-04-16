@@ -1,6 +1,6 @@
 Design
 
-![billofmaterials](images/Screenshot2025-04-16164554.png)
+![mainmodel](images/mainCADmodel.png)
 
 
 ![billofmaterials](BillOfMaterials.png)
