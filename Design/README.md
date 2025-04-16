@@ -1,1 +1,6 @@
-Here is how we designed the pendulum
+Design
+
+
+
+
+![billofmaterials](BillOfMaterials.png)
