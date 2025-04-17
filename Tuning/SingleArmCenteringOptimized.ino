@@ -15,6 +15,7 @@ const uint8_t CART_ENCODER_B = 19;  // Digital pin for cart position
 const uint8_t STEP_PIN = 10;
 const uint8_t DIR_PIN = 11;
 const uint8_t MF_PIN = 12;
+const uint8_t LED = 44;
 
 // Time tracking
 unsigned long startTime = millis();
@@ -60,7 +61,7 @@ int positions[4] = {-200, 0, 200, 0};
 
 void setup() {
     Serial.begin(115200);
-    digitalWrite(MF_PIN, HIGH); // Disables motor
+    
 
     // Stop Button setup
     pinMode(stopButtonPin, INPUT_PULLUP);
@@ -81,6 +82,9 @@ void setup() {
     pinMode(STEP_PIN, OUTPUT);
     pinMode(DIR_PIN, OUTPUT);
     pinMode(MF_PIN, OUTPUT);
+    pinMode(LED, OUTPUT);
+
+    //digitalWrite(MF_PIN, HIGH); // Disables motor
 
     // PID setup
     pendulumPID.SetMode(AUTOMATIC);
@@ -96,9 +100,10 @@ void setup() {
     Timer1.stop();  // Don't run until commanded
 
     //initialization();
-    digitalWrite(MF_PIN, LOW); // Enables Motor
+    //digitalWrite(MF_PIN, LOW); // Enables Motor
 
     delay(1000); // Initial delay before running
+    rawCartPosition = 0;
     swingup();
 
 
@@ -116,6 +121,7 @@ void loop() {
      if(abs(angle) > 15 || abs(cartPosition) > 325 || buttonState == 1) { // Checks all three failstates, max angle, max position and EM button
         failstate = true;
         digitalWrite(MF_PIN, HIGH);
+        digitalWrite(LED, HIGH);
         delay(1000);
         swingup(); // Runs swingup to reset pendulum
       }
@@ -169,7 +175,7 @@ void swingup() {
     angle = rawPendulumPosition * .045;
   }
   rawPendulumPosition = 4000; // Once determined pendulum is still, resets position to 180 degrees
-  Serial.println("angle set to 180");
+  // Serial.println("angle set to 180");
 
   while (angle > 1 || angle < -1) { // Waits for pendulum to be brought back to the top
     delay(10);
@@ -177,9 +183,11 @@ void swingup() {
     if (angle > 359 && angle < 361) {
       rawPendulumPosition = 0 + (angle-360)*(8000/360); // Resets angle to zero if rotated the wrong way
     }
-    Serial.print(angle);
-    Serial.print(", ");
-    Serial.println("wating... ");
+    // Serial.print(angle);
+    // Serial.print(", ");
+    // Serial.println("wating... ");
+    digitalWrite(LED, LOW);
+
       }
   failstate = false; // resets failstate
 
@@ -295,4 +303,3 @@ void cartEncoderISR() {
 
   last = current;
 }
-
