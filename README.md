@@ -15,4 +15,4 @@ A framework for an Arduino based PID controller was developed using ChatGPT, wit
 
 The controller that balances the first beam was tuned using Ziegler Nichols method. This was done by increasing the proportional constant until the system reached continuous oscillation, with the period of oscillation and required proportional constant then used to calculate values for P, I and D. In order to tune the PID controller that centers the cart, the graphs of system and controller data were analyzed to determine values for P, I and D. The proportional constant was increased until the system responded quickly to error. The derivative constant was added to remove overshoot, and a small amount of integral was added to reduce steady state error.
 
-![Alt text](images/BD_Single_Centering.png)
+![Alt text](images/BD_Single_Centering.jpg)
