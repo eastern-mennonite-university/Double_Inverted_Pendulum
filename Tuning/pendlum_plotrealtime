@@ -1,0 +1,84 @@
+import serial
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from collections import deque
+import time
+
+# --- Configuration ---
+SERIAL_PORT = 'COM5'   # ← Change this to your actual port
+BAUD_RATE = 115200
+MAX_POINTS = 1000       # How many data points to keep
+
+# --- Serial setup ---
+ser = serial.Serial(SERIAL_PORT, BAUD_RATE, timeout=1)
+time.sleep(2)  # Allow Arduino to reset
+
+# --- Buffers for data ---
+time_data = deque(maxlen=MAX_POINTS)
+setpoint_data = deque(maxlen=MAX_POINTS)
+angle_data = deque(maxlen=MAX_POINTS)
+pendulum_output_data = deque(maxlen=MAX_POINTS)
+cart_position_data = deque(maxlen=MAX_POINTS)
+cart_output_data = deque(maxlen=MAX_POINTS)
+
+# --- Plot setup ---
+fig, ax = plt.subplots()
+lines = {
+    'Setpoint': ax.plot([], [], label='Setpoint')[0],
+    'Angle': ax.plot([], [], label='Angle x 100')[0],
+    'Pendulum Output': ax.plot([], [], label='Pendulum Output x 10')[0],
+    'Cart Position': ax.plot([], [], label='Cart Position')[0],
+    'Cart Output': ax.plot([], [], label='Cart Output')[0],
+}
+
+ax.set_title('Real-Time Arduino Data')
+ax.set_xlabel('Time (ms)')
+ax.set_ylabel('Values')
+ax.legend()
+ax.grid(True)
+
+# --- Update function ---
+def update(frame):
+    while ser.in_waiting:
+        raw_line = ser.readline()
+        try:
+            line = raw_line.decode('utf-8').strip()
+        except UnicodeDecodeError:
+            print("Skipping unreadable line:", raw_line)
+            continue
+
+        parts = line.split(',')
+        if len(parts) != 6:
+            print("Malformed line:", line)
+            continue
+
+        try:
+            t, setpoint, angle, pend_out, cart_pos, cart_out = map(float, parts)
+        except ValueError:
+            print("Could not convert line to floats:", parts)
+            continue
+
+        # Append data
+        time_data.append(t)
+        setpoint_data.append(setpoint)
+        angle_data.append(angle*100)
+        pendulum_output_data.append(pend_out*10)
+        cart_position_data.append(cart_pos)
+        cart_output_data.append(cart_out)
+
+        # Update lines
+        lines['Setpoint'].set_data(time_data, setpoint_data)
+        lines['Angle'].set_data(time_data, angle_data)
+        lines['Pendulum Output'].set_data(time_data, pendulum_output_data)
+        lines['Cart Position'].set_data(time_data, cart_position_data)
+        lines['Cart Output'].set_data(time_data, cart_output_data)
+
+        ax.relim()
+        ax.autoscale_view()
+
+    return lines.values()
+
+# --- Start animation ---
+ani = animation.FuncAnimation(fig, update, interval=50, blit=False)
+plt.tight_layout()
+plt.show()
